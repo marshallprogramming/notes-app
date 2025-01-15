@@ -1,9 +1,5 @@
 import { create } from "zustand";
-
-export interface Note {
-  id: number;
-  body: string;
-}
+import { Note } from "../services/notes";
 
 interface NotesState {
   notes: ReadonlyArray<Note>;
