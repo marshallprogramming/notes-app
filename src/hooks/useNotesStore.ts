@@ -27,7 +27,10 @@ export const useNotesStore = create<NotesState>((set) => ({
   fetchNotes: async () => {
     try {
       const data = await fetchNotesApi();
-      set({ notes: data.map((note) => JSON.parse(note.body)) });
+      console.log(data);
+      set({
+        notes: data.map((note) => ({ id: note.id, ...JSON.parse(note.body) })),
+      });
     } catch (error) {
       console.error("Error fetching notes:", error);
     }

@@ -17,7 +17,7 @@ const Layout: FC = () => {
   }, [selectedNote]);
 
   const handleClose = useCallback(async () => {
-    if (selectedNoteId && selectedNote) {
+    if (selectedNoteId !== null && selectedNote) {
       await updateNote({
         id: selectedNoteId,
         title: currentTitle.current,
@@ -38,7 +38,9 @@ const Layout: FC = () => {
 
   const handleSave = useCallback(
     ({ title, body }: { title: string; body: string }) => {
-      if (selectedNoteId && selectedNote) {
+      console.log("saving", selectedNoteId);
+      if (selectedNoteId !== null && selectedNote) {
+        console.log("update", selectedNoteId);
         updateNote({
           id: selectedNoteId,
           title,
@@ -76,7 +78,7 @@ const Layout: FC = () => {
               : "translate-x-[150%] opacity-0 pointer-events-none"
           }`}
       >
-        {selectedNoteId && (
+        {selectedNoteId !== null && (
           <NoteEditor
             initialTitle={selectedNote?.title}
             initialContent={selectedNote?.body}
