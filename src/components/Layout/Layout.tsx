@@ -28,7 +28,7 @@ const Layout: FC = () => {
             : "opacity-0 translate-x-[150%] pointer-events-none"
         }`}
       >
-        <NoteEditor onChange={() => {}} />
+        <NoteEditor onChange={() => {}} onSave={() => {}} />
       </div>
     </div>
   );
