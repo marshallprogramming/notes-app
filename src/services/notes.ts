@@ -2,7 +2,9 @@ import { getOrCreateSessionId } from "./session";
 
 export interface Note {
   id: number;
+  title: string;
   body: string;
+  lastUpdated: string;
 }
 
 const BASE_API = "https://challenge.surfe.com";

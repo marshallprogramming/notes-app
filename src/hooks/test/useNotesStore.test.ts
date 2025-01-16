@@ -9,7 +9,9 @@ describe("useNotesStore with services", () => {
   });
 
   it("fetchNotes should populate store with data from service", async () => {
-    const mockData = [{ id: 1, body: "Hello" }];
+    const mockData = [
+      { id: 1, body: "Hello", title: "Title", lastUpdated: "Dec 2025" },
+    ];
     vi.spyOn(notesService, "fetchNotesApi").mockResolvedValueOnce(mockData);
 
     await useNotesStore.getState().fetchNotes();
@@ -18,7 +20,12 @@ describe("useNotesStore with services", () => {
   });
 
   it("addNote should call createNoteApi and update the store", async () => {
-    const createdNote = { id: 2, body: "Newly created note" };
+    const createdNote = {
+      id: 2,
+      body: "Newly created note",
+      title: "Title",
+      lastUpdated: "Dec 2025",
+    };
     vi.spyOn(notesService, "createNoteApi").mockResolvedValueOnce(createdNote);
 
     await useNotesStore.getState().addNote("Newly created note");
@@ -32,7 +39,11 @@ describe("useNotesStore with services", () => {
   });
 
   it("updateNoteBody should call updateNoteApi and modify the local note", async () => {
-    useNotesStore.setState({ notes: [{ id: 10, body: "Old body" }] });
+    useNotesStore.setState({
+      notes: [
+        { id: 10, body: "Old body", title: "Title", lastUpdated: "Dec 2025" },
+      ],
+    });
 
     vi.spyOn(notesService, "updateNoteApi").mockResolvedValueOnce(undefined);
 

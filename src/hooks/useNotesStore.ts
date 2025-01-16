@@ -4,12 +4,8 @@ import {
   createNoteApi,
   updateNoteApi,
   Note as ApiNote,
+  Note,
 } from "../services/notes";
-
-interface Note {
-  id: number;
-  body: string;
-}
 
 interface NotesState {
   notes: ReadonlyArray<Note>;
