@@ -10,7 +10,6 @@ const Layout: FC = () => {
 
   const handleClose = useCallback(async () => {
     if (selectedNoteId && selectedNote) {
-      // Save the current content before closing
       await updateNote({
         id: selectedNoteId,
         title: selectedNote.title,
@@ -20,8 +19,11 @@ const Layout: FC = () => {
     }
   }, [selectedNoteId, selectedNote, updateNote, selectNote]);
 
-  const handleContentChange = (content: string) => {
+  const handleChange = (content: string) => {
     currentContent.current = content;
+  };
+
+  const handleSave = (content: string) => {
     if (selectedNoteId && selectedNote) {
       updateNote({
         id: selectedNoteId,
@@ -57,8 +59,8 @@ const Layout: FC = () => {
       >
         <NoteEditor
           initialContent={selectedNote?.body}
-          onChange={handleContentChange}
-          onSave={handleContentChange}
+          onChange={handleChange}
+          onSave={handleSave}
         />
       </div>
     </div>

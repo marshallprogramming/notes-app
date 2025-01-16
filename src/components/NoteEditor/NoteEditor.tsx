@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState, useCallback } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { debounce } from "lodash";
 
 interface NoteEditorProps {
@@ -17,12 +17,11 @@ const NoteEditor: FC<NoteEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
 
-  const debouncedSave = useCallback(
+  const debouncedSave = useRef(
     debounce((content: string) => {
       onSave(content);
-    }, SAVE_DELAY),
-    [onSave]
-  );
+    }, SAVE_DELAY)
+  ).current;
 
   useEffect(() => {
     if (editorRef.current) {

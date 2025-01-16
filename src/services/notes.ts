@@ -74,7 +74,7 @@ export async function updateNoteApi({
   const res = await fetch(`${BASE_URL}/notes/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ body }),
+    body: JSON.stringify({ id, body }),
   });
 
   if (!res.ok) {
