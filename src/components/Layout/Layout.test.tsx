@@ -16,6 +16,9 @@ describe("Layout", () => {
   it("should hide editor when no note is selected", () => {
     mockUseNotesStore.mockReturnValue({
       selectedNoteId: null,
+      notes: [],
+      updateNoteBody: vi.fn(),
+      fetchNotes: vi.fn(),
     });
 
     render(<Layout />);
@@ -27,6 +30,11 @@ describe("Layout", () => {
   it("should show editor when note is selected", () => {
     mockUseNotesStore.mockReturnValue({
       selectedNoteId: 1,
+      notes: [
+        { id: 1, title: "Test Note", body: "Test Body", lastUpdated: "2025" },
+      ],
+      updateNoteBody: vi.fn(),
+      fetchNotes: vi.fn(),
     });
 
     render(<Layout />);

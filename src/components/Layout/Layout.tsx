@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { useNotesStore } from "../../hooks/useNotesStore";
-import NotesPage from "../NotesPage";
+import NotesPage from "../NotesPage/NotesPage";
 import { NoteEditor } from "../NoteEditor";
 
 const Layout: FC = () => {
