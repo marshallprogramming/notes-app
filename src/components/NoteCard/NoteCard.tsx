@@ -8,7 +8,7 @@ interface NoteCard extends Omit<Note, "id"> {
 const NoteCard: FC<NoteCard> = ({ title, body, lastUpdated, onClick }) => (
   <div
     onClick={onClick}
-    className="rounded-sm bg-white h-52 w-full shadow-lg shadow-slate-300 p-6 text-left cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+    className="rounded-sm bg-white aspect-[4/3] max-h-56 sm:max-h-none w-full shadow-lg shadow-slate-300 p-6 text-left cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
   >
     <h3 className="max-w-[60ch] truncate text-ellipsis">{title}</h3>
     <p className="text-sm">Last update: {lastUpdated}</p>

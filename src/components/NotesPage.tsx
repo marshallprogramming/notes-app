@@ -16,7 +16,7 @@ const NotesPage: React.FC = () => {
 
   return (
     <div className="h-full p-6">
-      <div className="border border-dashed border-gray-300 p-4 text-gray-500 text-center h-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 grid gap-6">
+      <div className="border border-dashed border-gray-300 p-4 text-gray-500 text-center h-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 grid gap-6">
         {dummyNotes.map(({ id, title, body, lastUpdated }) => (
           <NoteCard
             title={title}
