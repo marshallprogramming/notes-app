@@ -1,10 +1,12 @@
 import { FC } from "react";
+import NotesPage from "./components/NotesPage";
 
 const App: FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-semibold">Note Taking App</h1>
+    <div className="min-h-screen bg-noteBackground">
+      <h2 className="mx-4 py-4">Note Taking App</h2>
+      <div className="container mx-auto h-full">
+        <NotesPage />
       </div>
     </div>
   );
