@@ -4,17 +4,32 @@ import { NoteEditor } from "../NoteEditor";
 import { NotesPage } from "../NotesPage";
 
 const Layout: FC = () => {
-  const { selectedNoteId, notes, updateNoteBody, selectNote } = useNotesStore();
+  const { selectedNoteId, notes, updateNote, selectNote } = useNotesStore();
   const selectedNote = notes.find((note) => note.id === selectedNoteId);
   const currentContent = useRef<string>(selectedNote?.body || "");
 
   const handleClose = useCallback(async () => {
-    if (selectedNoteId) {
+    if (selectedNoteId && selectedNote) {
       // Save the current content before closing
-      await updateNoteBody(selectedNoteId, currentContent.current);
+      await updateNote({
+        id: selectedNoteId,
+        title: selectedNote.title,
+        body: currentContent.current,
+      });
       selectNote(null);
     }
-  }, [selectedNoteId, updateNoteBody, selectNote]);
+  }, [selectedNoteId, selectedNote, updateNote, selectNote]);
+
+  const handleContentChange = (content: string) => {
+    currentContent.current = content;
+    if (selectedNoteId && selectedNote) {
+      updateNote({
+        id: selectedNoteId,
+        title: selectedNote.title,
+        body: content,
+      });
+    }
+  };
 
   return (
     <div className="relative h-full overflow-hidden">
@@ -42,17 +57,8 @@ const Layout: FC = () => {
       >
         <NoteEditor
           initialContent={selectedNote?.body}
-          onChange={(content) => {
-            currentContent.current = content;
-            if (selectedNoteId) {
-              updateNoteBody(selectedNoteId, content);
-            }
-          }}
-          onSave={(content) => {
-            if (selectedNoteId) {
-              updateNoteBody(selectedNoteId, content);
-            }
-          }}
+          onChange={handleContentChange}
+          onSave={handleContentChange}
         />
       </div>
     </div>

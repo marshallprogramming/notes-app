@@ -6,7 +6,7 @@ import { Note } from "../../../services/notes";
 describe("NoteCard", () => {
   it("Should render body, title and lastUpdated", () => {
     const note: Note = {
-      id: 1,
+      id: "1",
       title: "title",
       lastUpdated: "Dec 2025",
       body: "body",
@@ -20,7 +20,7 @@ describe("NoteCard", () => {
   it("Should be clickable", () => {
     const handleClick = vi.fn();
     const note: Note = {
-      id: 1,
+      id: "1",
       title: "title",
       lastUpdated: "Dec 2025",
       body: "body",

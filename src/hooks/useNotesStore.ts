@@ -3,19 +3,19 @@ import {
   fetchNotesApi,
   createNoteApi,
   updateNoteApi,
-  Note as ApiNote,
   Note,
+  CreateNoteInput,
+  UpdateNoteInput,
 } from "../services/notes";
 
 interface NotesState {
   notes: ReadonlyArray<Note>;
-  selectedNoteId: number | null;
+  selectedNoteId: string | null;
 
-  selectNote: (id: number | null) => void;
-
+  selectNote: (id: string | null) => void;
   fetchNotes: () => Promise<void>;
-  addNote: (body: string) => Promise<void>;
-  updateNoteBody: (id: number, newBody: string) => Promise<void>;
+  addNote: (input: CreateNoteInput) => Promise<void>;
+  updateNote: (input: UpdateNoteInput) => Promise<void>;
 }
 
 export const useNotesStore = create<NotesState>((set) => ({
@@ -26,30 +26,31 @@ export const useNotesStore = create<NotesState>((set) => ({
 
   fetchNotes: async () => {
     try {
-      const data: ReadonlyArray<ApiNote> = await fetchNotesApi();
+      const data = await fetchNotesApi();
       set({ notes: data });
     } catch (error) {
       console.error("Error fetching notes:", error);
     }
   },
 
-  addNote: async (body) => {
+  addNote: async (input) => {
     try {
-      const newNote = await createNoteApi(body);
+      const newNote = await createNoteApi(input);
       set((state) => ({
         notes: [...state.notes, newNote],
+        selectedNoteId: newNote.id,
       }));
     } catch (error) {
       console.error("Error creating note:", error);
     }
   },
 
-  updateNoteBody: async (id, newBody) => {
+  updateNote: async (input) => {
     try {
-      await updateNoteApi(id, newBody);
+      const updatedNote = await updateNoteApi(input);
       set((state) => ({
         notes: state.notes.map((note) =>
-          note.id === id ? { ...note, body: newBody } : note
+          note.id === input.id ? updatedNote : note
         ),
       }));
     } catch (error) {

@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-
 import { useNotesStore } from "../../hooks/useNotesStore";
 import { BlankNoteCard, NoteCard } from "../NoteCard";
 
@@ -10,12 +9,16 @@ const NotesPage: React.FC = () => {
     fetchNotes();
   }, []);
 
-  const handleNoteClick = (id: number) => {
+  const handleNoteClick = (id: string) => {
     selectNote(id);
   };
 
   const handleAddNote = () => {
-    addNote("New note");
+    const title = "New Note";
+    addNote({
+      title,
+      body: `# ${title}\n\nStart writing here...`, // Using the title in the body content
+    });
   };
 
   return (

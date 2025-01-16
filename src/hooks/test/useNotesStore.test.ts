@@ -10,7 +10,7 @@ describe("useNotesStore with services", () => {
 
   it("fetchNotes should populate store with data from service", async () => {
     const mockData = [
-      { id: 1, body: "Hello", title: "Title", lastUpdated: "Dec 2025" },
+      { id: "note-1", title: "Title", body: "Hello", lastUpdated: "Dec 2025" },
     ];
     vi.spyOn(notesService, "fetchNotesApi").mockResolvedValueOnce(mockData);
 
@@ -20,37 +20,65 @@ describe("useNotesStore with services", () => {
   });
 
   it("addNote should call createNoteApi and update the store", async () => {
-    const createdNote = {
-      id: 2,
+    const noteInput = {
+      title: "New Note",
       body: "Newly created note",
-      title: "Title",
+    };
+
+    const createdNote = {
+      id: "note-2",
+      title: "New Note",
+      body: "Newly created note",
       lastUpdated: "Dec 2025",
     };
+
     vi.spyOn(notesService, "createNoteApi").mockResolvedValueOnce(createdNote);
 
-    await useNotesStore.getState().addNote("Newly created note");
-    const { notes } = useNotesStore.getState();
+    await useNotesStore.getState().addNote(noteInput);
+    const { notes, selectedNoteId } = useNotesStore.getState();
 
-    expect(notesService.createNoteApi).toHaveBeenCalledWith(
-      "Newly created note"
-    );
+    expect(notesService.createNoteApi).toHaveBeenCalledWith(noteInput);
     expect(notes.length).toBe(1);
     expect(notes[0]).toEqual(createdNote);
+    expect(selectedNoteId).toBe(createdNote.id);
   });
 
-  it("updateNoteBody should call updateNoteApi and modify the local note", async () => {
-    useNotesStore.setState({
-      notes: [
-        { id: 10, body: "Old body", title: "Title", lastUpdated: "Dec 2025" },
-      ],
-    });
+  it("updateNote should call updateNoteApi and modify the local note", async () => {
+    const initialNote = {
+      id: "note-10",
+      title: "Title",
+      body: "Old body",
+      lastUpdated: "Dec 2025",
+    };
 
-    vi.spyOn(notesService, "updateNoteApi").mockResolvedValueOnce(undefined);
+    useNotesStore.setState({ notes: [initialNote] });
 
-    await useNotesStore.getState().updateNoteBody(10, "Updated body");
+    const updateInput = {
+      id: "note-10",
+      title: "Updated Title",
+      body: "Updated body",
+    };
+
+    const updatedNote = {
+      ...updateInput,
+      lastUpdated: "Dec 2025",
+    };
+
+    vi.spyOn(notesService, "updateNoteApi").mockResolvedValueOnce(updatedNote);
+
+    await useNotesStore.getState().updateNote(updateInput);
     const { notes } = useNotesStore.getState();
 
-    expect(notesService.updateNoteApi).toHaveBeenCalledWith(10, "Updated body");
-    expect(notes[0].body).toBe("Updated body");
+    expect(notesService.updateNoteApi).toHaveBeenCalledWith(updateInput);
+    expect(notes[0]).toEqual(updatedNote);
+  });
+
+  it("selectNote should update selectedNoteId", () => {
+    const store = useNotesStore.getState();
+    store.selectNote("note-1");
+    expect(useNotesStore.getState().selectedNoteId).toBe("note-1");
+
+    store.selectNote(null);
+    expect(useNotesStore.getState().selectedNoteId).toBeNull();
   });
 });

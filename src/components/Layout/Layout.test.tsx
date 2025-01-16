@@ -17,7 +17,7 @@ describe("Layout", () => {
     mockUseNotesStore.mockReturnValue({
       selectedNoteId: null,
       notes: [],
-      updateNoteBody: vi.fn(),
+      updateNote: vi.fn(),
       fetchNotes: vi.fn(),
       selectNote: vi.fn(),
     });
@@ -30,11 +30,16 @@ describe("Layout", () => {
 
   it("should show editor when note is selected", () => {
     mockUseNotesStore.mockReturnValue({
-      selectedNoteId: 1,
+      selectedNoteId: "note-1",
       notes: [
-        { id: 1, title: "Test Note", body: "Test Body", lastUpdated: "2025" },
+        {
+          id: "note-1",
+          title: "Test Note",
+          body: "Test Body",
+          lastUpdated: "Dec 2025",
+        },
       ],
-      updateNoteBody: vi.fn(),
+      updateNote: vi.fn(),
       fetchNotes: vi.fn(),
       selectNote: vi.fn(),
     });
@@ -46,15 +51,19 @@ describe("Layout", () => {
   });
 
   it("should close editor and save content when clicking overlay", async () => {
-    const mockUpdateNoteBody = vi.fn();
+    const mockUpdateNote = vi.fn();
     const mockSelectNote = vi.fn();
+    const testNote = {
+      id: "note-1",
+      title: "Test Note",
+      body: "Test Body",
+      lastUpdated: "Dec 2025",
+    };
 
     mockUseNotesStore.mockReturnValue({
-      selectedNoteId: 1,
-      notes: [
-        { id: 1, title: "Test Note", body: "Test Body", lastUpdated: "2025" },
-      ],
-      updateNoteBody: mockUpdateNoteBody,
+      selectedNoteId: "note-1",
+      notes: [testNote],
+      updateNote: mockUpdateNote,
       fetchNotes: vi.fn(),
       selectNote: mockSelectNote,
     });
@@ -64,7 +73,42 @@ describe("Layout", () => {
     const overlay = screen.getByTestId("editor-overlay");
     await fireEvent.click(overlay);
 
-    expect(mockUpdateNoteBody).toHaveBeenCalledWith(1, "Test Body");
+    expect(mockUpdateNote).toHaveBeenCalledWith({
+      id: "note-1",
+      title: "Test Note",
+      body: "Test Body",
+    });
     expect(mockSelectNote).toHaveBeenCalledWith(null);
+  });
+
+  it("should update note content when editor content changes", async () => {
+    const mockUpdateNote = vi.fn();
+    const testNote = {
+      id: "note-1",
+      title: "Test Note",
+      body: "Test Body",
+      lastUpdated: "Dec 2025",
+    };
+
+    mockUseNotesStore.mockReturnValue({
+      selectedNoteId: "note-1",
+      notes: [testNote],
+      updateNote: mockUpdateNote,
+      fetchNotes: vi.fn(),
+      selectNote: vi.fn(),
+    });
+
+    render(<Layout />);
+
+    const editor = screen.getByTestId("note-editor");
+    fireEvent.input(editor, {
+      target: { innerHTML: "New content" },
+    });
+
+    expect(mockUpdateNote).toHaveBeenCalledWith({
+      id: "note-1",
+      title: "Test Note",
+      body: "New content",
+    });
   });
 });
