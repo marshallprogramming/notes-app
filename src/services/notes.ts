@@ -1,5 +1,4 @@
 import { getOrCreateSessionId } from "./session";
-import { v4 as uuidv4 } from "uuid";
 
 export interface Note {
   id: string;
@@ -31,7 +30,9 @@ export const formatDate = (date: Date): string => {
   });
 };
 
-export async function fetchNotesApi(): Promise<ReadonlyArray<Note>> {
+export async function fetchNotesApi(): Promise<
+  ReadonlyArray<{ body: string; id: string }>
+> {
   const res = await fetch(`${BASE_URL}/notes`);
   if (!res.ok) {
     throw new Error("Failed to fetch notes");
@@ -41,7 +42,6 @@ export async function fetchNotesApi(): Promise<ReadonlyArray<Note>> {
 
 export async function createNoteApi(input: CreateNoteInput): Promise<Note> {
   const note = {
-    id: uuidv4(),
     title: input.title,
     body: input.body,
     lastUpdated: formatDate(new Date()),
@@ -50,14 +50,16 @@ export async function createNoteApi(input: CreateNoteInput): Promise<Note> {
   const res = await fetch(`${BASE_URL}/notes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ body: input.body }),
+    body: JSON.stringify({ body: JSON.stringify(note) }),
   });
 
   if (!res.ok) {
     throw new Error("Failed to create note");
   }
 
-  return note;
+  const generatedNote = await res.json();
+
+  return { ...note, id: generatedNote.id };
 }
 
 export async function updateNoteApi({

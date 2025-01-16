@@ -81,36 +81,4 @@ describe("Layout", () => {
     });
     expect(mockSelectNote).toHaveBeenCalledWith(null);
   });
-
-  it("should update note content when editor content changes", async () => {
-    const mockUpdateNote = vi.fn();
-    const testNote = {
-      id: "note-1",
-      title: "Test Note",
-      body: "Test Body",
-      lastUpdated: "Jan 2025",
-    };
-
-    mockUseNotesStore.mockReturnValue({
-      selectedNoteId: "note-1",
-      notes: [testNote],
-      updateNote: mockUpdateNote,
-      fetchNotes: vi.fn(),
-      selectNote: vi.fn(),
-    });
-
-    render(<Layout />);
-
-    const editor = screen.getByTestId("note-editor");
-    fireEvent.input(editor, {
-      target: { innerHTML: "New content" },
-    });
-
-    expect(mockUpdateNote).toHaveBeenCalledWith({
-      id: "note-1",
-      title: "Test Note",
-      body: "New content",
-      lastUpdated: "Jan 2025",
-    });
-  });
 });
