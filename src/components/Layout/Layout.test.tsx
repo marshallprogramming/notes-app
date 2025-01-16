@@ -36,7 +36,7 @@ describe("Layout", () => {
           id: "note-1",
           title: "Test Note",
           body: "Test Body",
-          lastUpdated: "Dec 2025",
+          lastUpdated: "Jan 2025",
         },
       ],
       updateNote: vi.fn(),
@@ -57,7 +57,7 @@ describe("Layout", () => {
       id: "note-1",
       title: "Test Note",
       body: "Test Body",
-      lastUpdated: "Dec 2025",
+      lastUpdated: "Jan 2025",
     };
 
     mockUseNotesStore.mockReturnValue({
@@ -77,6 +77,7 @@ describe("Layout", () => {
       id: "note-1",
       title: "Test Note",
       body: "Test Body",
+      lastUpdated: "Jan 2025",
     });
     expect(mockSelectNote).toHaveBeenCalledWith(null);
   });
@@ -87,7 +88,7 @@ describe("Layout", () => {
       id: "note-1",
       title: "Test Note",
       body: "Test Body",
-      lastUpdated: "Dec 2025",
+      lastUpdated: "Jan 2025",
     };
 
     mockUseNotesStore.mockReturnValue({
@@ -109,6 +110,7 @@ describe("Layout", () => {
       id: "note-1",
       title: "Test Note",
       body: "New content",
+      lastUpdated: "Jan 2025",
     });
   });
 });

@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { fetchNotesApi, createNoteApi, updateNoteApi } from "../notes";
+import {
+  fetchNotesApi,
+  createNoteApi,
+  updateNoteApi,
+  formatDate,
+} from "../notes";
 
 describe("notes", () => {
   beforeEach(() => {
@@ -81,11 +86,12 @@ describe("notes", () => {
     });
   });
 
-  it("updateNoteApi should only send body in request but return full note", async () => {
+  it("updateNoteApi should send updated note and return full note", async () => {
     const input = {
       id: "note-123",
       title: "Updated Title",
       body: "Updated Body",
+      lastUpdated: formatDate(new Date()),
     };
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
@@ -100,7 +106,7 @@ describe("notes", () => {
       expect.objectContaining({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: input.body }),
+        body: JSON.stringify({ id: input.id, body: JSON.stringify(input) }),
       })
     );
 
@@ -109,7 +115,7 @@ describe("notes", () => {
       id: "note-123",
       title: "Updated Title",
       body: "Updated Body",
-      lastUpdated: "Dec 2025",
+      lastUpdated: input.lastUpdated,
     });
   });
 
@@ -140,6 +146,7 @@ describe("notes", () => {
         id: "note-123",
         title: "Test",
         body: "Test",
+        lastUpdated: formatDate(new Date()),
       })
     ).rejects.toThrow("Failed to update note");
   });

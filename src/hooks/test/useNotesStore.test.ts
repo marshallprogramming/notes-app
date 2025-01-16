@@ -57,6 +57,7 @@ describe("useNotesStore with services", () => {
       id: "note-10",
       title: "Updated Title",
       body: "Updated body",
+      lastUpdated: notesService.formatDate(new Date()),
     };
 
     const updatedNote = {

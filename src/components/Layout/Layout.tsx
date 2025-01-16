@@ -1,37 +1,54 @@
-import { FC, useCallback, useRef } from "react";
+import { FC, useCallback, useRef, useEffect } from "react";
 import { useNotesStore } from "../../hooks/useNotesStore";
 import { NoteEditor } from "../NoteEditor";
 import { NotesPage } from "../NotesPage";
+import { formatDate } from "../../services/notes";
 
 const Layout: FC = () => {
   const { selectedNoteId, notes, updateNote, selectNote } = useNotesStore();
   const selectedNote = notes.find((note) => note.id === selectedNoteId);
-  const currentContent = useRef<string>(selectedNote?.body || "");
+
+  const currentTitle = useRef<string>(selectedNote?.title || "");
+  const currentBody = useRef<string>(selectedNote?.body || "");
+
+  useEffect(() => {
+    currentTitle.current = selectedNote?.title || "";
+    currentBody.current = selectedNote?.body || "";
+  }, [selectedNote]);
 
   const handleClose = useCallback(async () => {
     if (selectedNoteId && selectedNote) {
       await updateNote({
         id: selectedNoteId,
-        title: selectedNote.title,
-        body: currentContent.current,
+        title: currentTitle.current,
+        body: currentBody.current,
+        lastUpdated: formatDate(new Date()),
       });
       selectNote(null);
     }
   }, [selectedNoteId, selectedNote, updateNote, selectNote]);
 
-  const handleChange = (content: string) => {
-    currentContent.current = content;
-  };
+  const handleChange = useCallback(
+    ({ title, body }: { title: string; body: string }) => {
+      currentTitle.current = title;
+      currentBody.current = body;
+    },
+    []
+  );
 
-  const handleSave = (content: string) => {
-    if (selectedNoteId && selectedNote) {
-      updateNote({
-        id: selectedNoteId,
-        title: selectedNote.title,
-        body: content,
-      });
-    }
-  };
+  const handleSave = useCallback(
+    ({ title, body }: { title: string; body: string }) => {
+      if (selectedNoteId && selectedNote) {
+        updateNote({
+          id: selectedNoteId,
+          title,
+          body,
+          lastUpdated: formatDate(new Date()),
+        });
+      }
+    },
+    [selectedNoteId, selectedNote, updateNote]
+  );
 
   return (
     <div className="relative h-full overflow-hidden">
@@ -51,17 +68,22 @@ const Layout: FC = () => {
 
       <div
         data-testid="editor-panel"
-        className={`fixed top-1/2 left-1/2 w-[calc(min(80vh*0.707,90vw))] aspect-[1/1.4142] -translate-y-1/2 bg-white shadow-xl transform transition-all duration-300 ease-in-out ${
-          selectedNoteId !== null
-            ? "-translate-x-1/2 opacity-100"
-            : "translate-x-[150%] opacity-0 pointer-events-none"
-        }`}
+        className={`overflow-auto fixed top-1/2 left-1/2 w-[calc(min(80vh*0.707,90vw))] aspect-[1/1.4142] 
+          -translate-y-1/2 bg-white shadow-xl transform transition-all 
+          duration-300 ease-in-out ${
+            selectedNoteId !== null
+              ? "-translate-x-1/2 opacity-100"
+              : "translate-x-[150%] opacity-0 pointer-events-none"
+          }`}
       >
-        <NoteEditor
-          initialContent={selectedNote?.body}
-          onChange={handleChange}
-          onSave={handleSave}
-        />
+        {selectedNoteId && (
+          <NoteEditor
+            initialTitle={selectedNote?.title}
+            initialContent={selectedNote?.body}
+            onChange={handleChange}
+            onSave={handleSave}
+          />
+        )}
       </div>
     </div>
   );

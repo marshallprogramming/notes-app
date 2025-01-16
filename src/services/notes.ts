@@ -17,14 +17,15 @@ export interface UpdateNoteInput {
   id: string;
   title: string;
   body: string;
+  lastUpdated: string;
 }
 
 const BASE_API = "https://challenge.surfe.com";
 const sessionId = getOrCreateSessionId();
 const BASE_URL = `${BASE_API}/${sessionId}`;
 
-const formatDate = (date: Date): string => {
-  return date.toLocaleString("en-US", {
+export const formatDate = (date: Date): string => {
+  return date.toLocaleString("en-GB", {
     month: "short",
     year: "numeric",
   });
@@ -63,18 +64,19 @@ export async function updateNoteApi({
   id,
   title,
   body,
+  lastUpdated,
 }: UpdateNoteInput): Promise<Note> {
   const updatedNote = {
     id,
     title,
     body,
-    lastUpdated: formatDate(new Date()),
+    lastUpdated,
   };
 
   const res = await fetch(`${BASE_URL}/notes/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, body }),
+    body: JSON.stringify({ id, body: JSON.stringify(updatedNote) }),
   });
 
   if (!res.ok) {

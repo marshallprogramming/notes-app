@@ -2,24 +2,27 @@ import { FC, useEffect, useRef, useState } from "react";
 import { debounce } from "lodash";
 
 interface NoteEditorProps {
+  initialTitle?: string;
   initialContent?: string;
-  onChange: (content: string) => void;
-  onSave: (content: string) => void;
+  onChange: (data: { title: string; body: string }) => void;
+  onSave: (data: { title: string; body: string }) => void;
 }
 
 const SAVE_DELAY = 1000;
 
 const NoteEditor: FC<NoteEditorProps> = ({
+  initialTitle = "",
   initialContent = "",
   onChange,
   onSave,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
 
   const debouncedSave = useRef(
-    debounce((content: string) => {
-      onSave(content);
+    debounce((data: { title: string; body: string }) => {
+      onSave(data);
     }, SAVE_DELAY)
   ).current;
 
@@ -27,12 +30,18 @@ const NoteEditor: FC<NoteEditorProps> = ({
     if (editorRef.current) {
       editorRef.current.innerHTML = initialContent;
     }
-  }, [initialContent]);
+    if (titleRef.current) {
+      titleRef.current.value = initialTitle;
+    }
+  }, [initialContent, initialTitle]);
 
-  const handleInput = () => {
+  const handleChange = () => {
     const content = editorRef.current?.innerHTML || "";
-    onChange(content);
-    debouncedSave(content);
+    const title = titleRef.current?.value || "";
+    const data = { title, body: content };
+
+    onChange(data);
+    debouncedSave(data);
   };
 
   useEffect(() => {
@@ -42,17 +51,30 @@ const NoteEditor: FC<NoteEditorProps> = ({
   }, [debouncedSave]);
 
   return (
-    <div
-      ref={editorRef}
-      contentEditable
-      className={`w-full h-full p-4 bg-white rounded-sm ${
-        isFocused ? "ring-2 ring-blue-500" : "ring-1 ring-gray-200"
-      }`}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
-      onInput={handleInput}
-      data-testid="note-editor"
-    />
+    <div className="flex flex-col h-full">
+      <div className="border-b border-gray-200 p-4">
+        <input
+          ref={titleRef}
+          type="text"
+          className="w-full text-xl font-semibold outline-none"
+          placeholder="Note title..."
+          defaultValue={initialTitle}
+          onChange={handleChange}
+          data-testid="note-title"
+        />
+      </div>
+      <div
+        ref={editorRef}
+        contentEditable
+        className={`flex-1 p-4 outline-none ${
+          isFocused ? "ring-2 ring-inset ring-blue-500" : ""
+        }`}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        onInput={handleChange}
+        data-testid="note-editor"
+      />
+    </div>
   );
 };
 

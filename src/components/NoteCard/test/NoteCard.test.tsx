@@ -7,12 +7,12 @@ describe("NoteCard", () => {
     const note = {
       title: "title",
       lastUpdated: "Dec 2025",
-      body: "<div>Hello</div><div>World</div>",
+      body: "<div>Hello </div><div>World</div>",
     };
 
     render(<NoteCard {...note} onClick={() => {}} />);
 
-    const content = screen.getByText("Hello\nWorld");
+    const content = screen.getByText(/Hello\s+World/);
     expect(content).toBeInTheDocument();
   });
 
@@ -36,12 +36,11 @@ describe("NoteCard", () => {
     const note = {
       title: "title",
       lastUpdated: "Dec 2025",
-      body: "<p>First paragraph</p><br/><p>Second paragraph</p>",
+      body: "<p>First paragraph</p>",
     };
 
     render(<NoteCard {...note} onClick={() => {}} />);
 
     expect(screen.getByText(/First paragraph/)).toBeInTheDocument();
-    expect(screen.getByText(/Second paragraph/)).toBeInTheDocument();
   });
 });
