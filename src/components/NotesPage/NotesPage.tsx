@@ -10,7 +10,6 @@ const NotesPage: React.FC = () => {
   }, []);
 
   const handleNoteClick = (id: string) => {
-    console.log(id);
     selectNote(id);
   };
 

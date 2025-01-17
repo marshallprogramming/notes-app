@@ -38,9 +38,7 @@ const Layout: FC = () => {
 
   const handleSave = useCallback(
     ({ title, body }: { title: string; body: string }) => {
-      console.log("saving", selectedNoteId);
       if (selectedNoteId !== null && selectedNote) {
-        console.log("update", selectedNoteId);
         updateNote({
           id: selectedNoteId,
           title,

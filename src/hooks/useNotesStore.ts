@@ -27,7 +27,6 @@ export const useNotesStore = create<NotesState>((set) => ({
   fetchNotes: async () => {
     try {
       const data = await fetchNotesApi();
-      console.log(data);
       set({
         notes: data.map((note) => ({ id: note.id, ...JSON.parse(note.body) })),
       });

@@ -1,5 +1,8 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { debounce } from "lodash";
+import { useMentionsStore } from "../../hooks/useMentionsStore";
+import { useCaretMention } from "../../hooks/useCaretMention";
+import { MentionDropdown } from "../MentionDropdown";
 
 interface NoteEditorProps {
   initialTitle?: string;
@@ -19,21 +22,13 @@ const NoteEditor: FC<NoteEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const fetchUsers = useMentionsStore((s) => s.fetchUsers);
 
   const debouncedSave = useRef(
     debounce((data: { title: string; body: string }) => {
       onSave(data);
     }, SAVE_DELAY)
   ).current;
-
-  useEffect(() => {
-    if (!isFocused && editorRef.current) {
-      const currentHTML = editorRef.current.innerHTML;
-      if (currentHTML !== initialContent) {
-        editorRef.current.innerHTML = initialContent;
-      }
-    }
-  }, [initialContent, isFocused]);
 
   const handleChange = () => {
     const content = editorRef.current?.innerHTML || "";
@@ -44,11 +39,45 @@ const NoteEditor: FC<NoteEditorProps> = ({
     debouncedSave(data);
   };
 
+  const {
+    isVisible: showMentions,
+    query: mentionQuery,
+    position: mentionPosition,
+    handleKeyUp,
+    handleMentionSelect,
+  } = useCaretMention(editorRef, handleChange);
+
+  // Debug log
+  useEffect(() => {
+    console.log("Mention state:", {
+      showMentions,
+      mentionQuery,
+      mentionPosition,
+    });
+  }, [showMentions, mentionQuery, mentionPosition]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    if (!isFocused && editorRef.current) {
+      const currentHTML = editorRef.current.innerHTML;
+      if (currentHTML !== initialContent) {
+        editorRef.current.innerHTML = initialContent;
+      }
+    }
+  }, [initialContent, isFocused]);
+
   useEffect(() => {
     return () => {
       debouncedSave.cancel();
     };
   }, [debouncedSave]);
+
+  const handleEditorKeyUp = (e: React.KeyboardEvent) => {
+    handleKeyUp(e);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -63,17 +92,26 @@ const NoteEditor: FC<NoteEditorProps> = ({
           data-testid="note-title"
         />
       </div>
-      <div
-        ref={editorRef}
-        contentEditable
-        className={`flex-1 p-4 outline-none ${
-          isFocused ? "ring-2 ring-inset ring-blue-500" : ""
-        }`}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        onInput={handleChange}
-        data-testid="note-editor"
-      />
+      <div className="flex-1 relative">
+        <div
+          ref={editorRef}
+          contentEditable
+          className={`h-full p-4 outline-none ${
+            isFocused ? "ring-2 ring-inset ring-blue-500" : ""
+          }`}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onInput={handleChange}
+          onKeyUp={handleEditorKeyUp}
+          data-testid="note-editor"
+        />
+        <MentionDropdown
+          showMentions={showMentions}
+          query={mentionQuery}
+          position={mentionPosition}
+          onSelect={handleMentionSelect}
+        />
+      </div>
     </div>
   );
 };
