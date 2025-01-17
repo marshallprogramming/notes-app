@@ -17,7 +17,7 @@ const NotesPage: React.FC = () => {
     const title = "New Note";
     addNote({
       title,
-      body: `# ${title}\n\nStart writing here...`, // Using the title in the body content
+      body: ``,
     });
   };
 

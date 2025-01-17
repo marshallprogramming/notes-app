@@ -10,7 +10,7 @@ const App: FC = () => {
         <div className="container mx-auto flex justify-between items-center">
           <h2 className="px-4 py-4 text-xl font-semibold">Note Taking App</h2>
           <button
-            className="rounded bg-blue-300 h-min py-2 px-4 opacity-80 text-white transition-opacity duration-300 ease-in-out hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="mx-2 rounded bg-blue-300 h-min py-2 px-4 opacity-80 text-white transition-opacity duration-300 ease-in-out hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             onClick={() => clearAll()}
           >
             Reset Notes
