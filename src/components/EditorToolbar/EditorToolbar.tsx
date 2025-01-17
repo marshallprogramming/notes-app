@@ -23,6 +23,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
   activeFormats,
 }) => {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
+  const [showTooltip, setShowTooltip] = React.useState<string | null>(null);
 
   const colors = ["black", "red", "blue", "green", "yellow"];
 
@@ -31,16 +32,17 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
     setShowColorPicker(false);
   };
 
-  const getButtonClass = (isActive: boolean) => `
-    p-2 rounded transition-colors duration-200
+  const getButtonClass = (isActive: boolean, isDisabled?: boolean) => `
+    p-2 rounded transition-colors duration-200 relative
     ${isActive ? "bg-gray-200 hover:bg-gray-300" : "hover:bg-gray-100"}
+    ${isDisabled ? "opacity-50 cursor-not-allowed hover:bg-transparent" : ""}
   `;
 
   return (
     <div className="border-b border-gray-200 p-2 flex items-center gap-2 justify-around">
       <button
         onMouseDown={(e) => {
-          e.preventDefault(); // Prevent button from stealing focus
+          e.preventDefault();
           onFormatText("bold");
         }}
         className={getButtonClass(activeFormats.bold)}
@@ -62,20 +64,27 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         <ItalicIcon className="w-4 h-4" />
       </button>
 
-      <button
-        onMouseDown={(e) => {
-          e.preventDefault();
-          onFormatText(
-            "backColor",
-            activeFormats.highlight ? "transparent" : "yellow"
-          );
-        }}
-        className={getButtonClass(activeFormats.highlight)}
-        data-testid="highlight-button"
-        title="Highlight"
+      <div
+        className="relative"
+        onMouseEnter={() => setShowTooltip("highlight")}
+        onMouseLeave={() => setShowTooltip(null)}
       >
-        <HighlighterIcon className="w-4 h-4" />
-      </button>
+        <button
+          className={getButtonClass(activeFormats.highlight, true)}
+          data-testid="highlight-button"
+          disabled // TODO: Highlight and unhighlight text
+        >
+          <HighlighterIcon className="w-4 h-4" />
+          <div className="absolute top-0 right-0 w-2 h-2">
+            <svg
+              viewBox="0 0 24 24"
+              className="w-full h-full text-red-500 fill-current"
+            >
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg>
+          </div>
+        </button>
+      </div>
 
       <div className="relative">
         <button
@@ -122,17 +131,27 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         )}
       </div>
 
-      <button
-        onMouseDown={(e) => {
-          e.preventDefault();
-          onFormatText("insertUnorderedList");
-        }}
-        className={getButtonClass(activeFormats.list)}
-        data-testid="list-button"
-        title="Bullet List"
+      <div
+        className="relative"
+        onMouseEnter={() => setShowTooltip("list")}
+        onMouseLeave={() => setShowTooltip(null)}
       >
-        <ListIcon className="w-4 h-4" />
-      </button>
+        <button
+          className={getButtonClass(activeFormats.list, true)}
+          data-testid="list-button"
+          disabled // TODO: Enable bullet points/lists
+        >
+          <ListIcon className="w-4 h-4" />
+          <div className="absolute top-0 right-0 w-2 h-2">
+            <svg
+              viewBox="0 0 24 24"
+              className="w-full h-full text-red-500 fill-current"
+            >
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg>
+          </div>
+        </button>
+      </div>
     </div>
   );
 };
