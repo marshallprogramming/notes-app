@@ -24,7 +24,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
 }) => {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
 
-  const colors = ["red", "blue", "green", "purple", "yellow"];
+  const colors = ["black", "red", "blue", "green", "yellow"];
 
   const handleColorClick = (color: string) => {
     onFormatText("foreColor", color);
@@ -96,7 +96,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
         </button>
 
         {showColorPicker && (
-          <div className="absolute top-full left-0 mt-1 p-2 bg-white shadow-lg rounded border border-gray-200 flex gap-2 z-10">
+          <div className="absolute top-full right-0 mt-1 p-2 bg-white shadow-lg rounded border border-gray-200 flex gap-2 z-10">
             {colors.map((color) => (
               <button
                 key={color}
