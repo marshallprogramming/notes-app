@@ -17,6 +17,10 @@ interface UseCaretMentionReturn extends MentionState {
   reset: () => void;
 }
 
+const isValidMentionQuery = (query: string) => {
+  return /^[A-Za-z0-9_]*$/.test(query);
+};
+
 export const useCaretMention = (
   editorRef: RefObject<HTMLDivElement>,
   onChange?: () => void
@@ -96,13 +100,20 @@ export const useCaretMention = (
     const caretPos = getAbsoluteCaretPos();
 
     const lastIndex = content.lastIndexOf("@", caretPos - 1);
+
     if (lastIndex >= 0) {
       const mentionLength = caretPos - (lastIndex + 1);
 
       if (mentionLength >= 0 && mentionLength <= 30) {
         const query = content.slice(lastIndex + 1, caretPos);
-        const position = getCaretPosition();
 
+        if (!isValidMentionQuery(query)) {
+          reset();
+          onChange?.();
+          return;
+        }
+
+        const position = getCaretPosition();
         if (position) {
           setMentionState({
             isVisible: true,
