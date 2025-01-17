@@ -9,9 +9,19 @@ import {
 
 interface EditorToolbarProps {
   onFormatText: (command: string, value?: string) => void;
+  activeFormats: {
+    bold: boolean;
+    italic: boolean;
+    list: boolean;
+    highlight: boolean;
+    color: string | null;
+  };
 }
 
-const EditorToolbar: React.FC<EditorToolbarProps> = ({ onFormatText }) => {
+const EditorToolbar: React.FC<EditorToolbarProps> = ({
+  onFormatText,
+  activeFormats,
+}) => {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
 
   const colors = ["red", "blue", "green", "purple", "yellow"];
@@ -21,11 +31,16 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ onFormatText }) => {
     setShowColorPicker(false);
   };
 
+  const getButtonClass = (isActive: boolean) => `
+    p-2 rounded transition-colors duration-200
+    ${isActive ? "bg-gray-200 hover:bg-gray-300" : "hover:bg-gray-100"}
+  `;
+
   return (
     <div className="border-b border-gray-200 p-2 flex items-center gap-2 justify-around">
       <button
         onClick={() => onFormatText("bold")}
-        className="p-2 hover:bg-gray-100 rounded"
+        className={getButtonClass(activeFormats.bold)}
         data-testid="bold-button"
         title="Bold"
       >
@@ -34,7 +49,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ onFormatText }) => {
 
       <button
         onClick={() => onFormatText("italic")}
-        className="p-2 hover:bg-gray-100 rounded"
+        className={getButtonClass(activeFormats.italic)}
         data-testid="italic-button"
         title="Italic"
       >
@@ -42,8 +57,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ onFormatText }) => {
       </button>
 
       <button
-        onClick={() => onFormatText("backColor", "yellow")}
-        className="p-2 hover:bg-gray-100 rounded"
+        onClick={() =>
+          onFormatText(
+            "backColor",
+            activeFormats.highlight ? "transparent" : "yellow"
+          )
+        }
+        className={getButtonClass(activeFormats.highlight)}
         data-testid="highlight-button"
         title="Highlight"
       >
@@ -53,9 +73,14 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ onFormatText }) => {
       <div className="relative">
         <button
           onClick={() => setShowColorPicker(!showColorPicker)}
-          className="p-2 hover:bg-gray-100 rounded"
+          className={getButtonClass(!!activeFormats.color)}
           data-testid="color-button"
           title="Text Color"
+          style={{
+            borderBottom: activeFormats.color
+              ? `2px solid ${activeFormats.color}`
+              : "none",
+          }}
         >
           <PaletteIcon className="w-4 h-4" />
         </button>
@@ -66,7 +91,15 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ onFormatText }) => {
               <button
                 key={color}
                 onClick={() => handleColorClick(color)}
-                className="w-6 h-6 rounded cursor-pointer hover:ring-2 ring-offset-2 ring-gray-400"
+                className={`
+                  w-6 h-6 rounded cursor-pointer
+                  hover:ring-2 ring-offset-2 ring-gray-400
+                  ${
+                    activeFormats.color === color
+                      ? "ring-2 ring-offset-2 ring-gray-400"
+                      : ""
+                  }
+                `}
                 style={{ backgroundColor: color }}
                 data-testid={`color-${color}`}
                 title={`Text color: ${color}`}
@@ -78,7 +111,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ onFormatText }) => {
 
       <button
         onClick={() => onFormatText("insertUnorderedList")}
-        className="p-2 hover:bg-gray-100 rounded"
+        className={getButtonClass(activeFormats.list)}
         data-testid="list-button"
         title="Bullet List"
       >

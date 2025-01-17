@@ -34,11 +34,35 @@ const NoteEditor: FC<NoteEditorProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const fetchUsers = useMentionsStore((s) => s.fetchUsers);
 
+  // Track active formatting states
+  const [activeFormats, setActiveFormats] = useState({
+    bold: false,
+    italic: false,
+    list: false,
+    highlight: false,
+    color: null as string | null,
+  });
+
   const debouncedSave = useRef(
     debounce((data: { title: string; body: string }) => {
       onSave(data);
     }, SAVE_DELAY)
   ).current;
+
+  const checkFormatting = () => {
+    if (!editorRef.current) return;
+
+    setActiveFormats({
+      bold: document.queryCommandState("bold"),
+      italic: document.queryCommandState("italic"),
+      list: document.queryCommandState("insertUnorderedList"),
+      highlight: document.queryCommandValue("backColor") === "yellow",
+      color:
+        document.queryCommandValue("foreColor") === "rgb(0, 0, 0)"
+          ? null
+          : document.queryCommandValue("foreColor"),
+    });
+  };
 
   const handleChange = () => {
     const content = editorRef.current?.innerHTML || "";
@@ -47,6 +71,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
     onChange(data);
     debouncedSave(data);
+    checkFormatting();
   };
 
   const handleFormatText = (command: string, value?: string) => {
@@ -71,6 +96,9 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
     // Execute the command
     document.execCommand(command, false, value);
+
+    // Check formatting states after command execution
+    checkFormatting();
 
     // Trigger the change handler to save the formatted content
     handleChange();
@@ -112,6 +140,46 @@ const NoteEditor: FC<NoteEditorProps> = ({
     };
   }, [debouncedSave]);
 
+  // Add keyboard shortcut handlers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const modifierKey = isMac ? e.metaKey : e.ctrlKey;
+
+      if (modifierKey) {
+        switch (e.key.toLowerCase()) {
+          case "b":
+            e.preventDefault();
+            handleFormatText("bold");
+            break;
+          case "i":
+            e.preventDefault();
+            handleFormatText("italic");
+            break;
+        }
+      }
+    };
+
+    editorRef.current?.addEventListener("keydown", handleKeyDown);
+    return () => {
+      editorRef.current?.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  // Add selection change monitoring
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      if (document.activeElement === editorRef.current) {
+        checkFormatting();
+      }
+    };
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, []);
+
   useEffect(() => {
     if (showMentions && editorRef.current) {
       const editorRect = editorRef.current.getBoundingClientRect();
@@ -141,6 +209,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
   const handleEditorKeyUp = (e: React.KeyboardEvent) => {
     handleKeyUp(e);
+    checkFormatting();
   };
 
   return (
@@ -163,7 +232,10 @@ const NoteEditor: FC<NoteEditorProps> = ({
         </div>
       </div>
 
-      <EditorToolbar onFormatText={handleFormatText} />
+      <EditorToolbar
+        onFormatText={handleFormatText}
+        activeFormats={activeFormats}
+      />
 
       <div className="flex-1 relative">
         <div
@@ -172,10 +244,14 @@ const NoteEditor: FC<NoteEditorProps> = ({
           className={`h-full p-4 outline-none ${
             isFocused ? "ring-2 ring-inset ring-blue-500" : ""
           }`}
-          onFocus={() => setIsFocused(true)}
+          onFocus={() => {
+            setIsFocused(true);
+            checkFormatting();
+          }}
           onBlur={() => setIsFocused(false)}
           onInput={handleChange}
           onKeyUp={handleEditorKeyUp}
+          onMouseUp={checkFormatting}
           data-testid="note-editor"
         />
         <MentionDropdown
