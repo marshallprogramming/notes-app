@@ -34,14 +34,6 @@ A collaborative note-taking application built with React and TypeScript, featuri
 - **Responsive Design**: Enjoy a modern, responsive interface optimized for all devices
 - **Collaborative Tools**: Enhance teamwork by tagging and mentioning collaborators directly within notes
 
-## Screenshots
-
-Main page where you can add new notes by clicking the + button.
-
-Rich-text editor with @mentions functionality.
-
-Dynamic dropdown for selecting users to mention.
-
 ## Getting Started
 
 Follow these instructions to set up and run the project locally.
