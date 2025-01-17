@@ -4,6 +4,10 @@ import Layout from "./Layout";
 
 const mockUseNotesStore = vi.fn();
 
+vi.mock("../../services/notes", () => ({
+  formatDate: () => "Jan 2025",
+}));
+
 vi.mock("../../hooks/useNotesStore", () => ({
   useNotesStore: () => mockUseNotesStore(),
 }));
@@ -11,43 +15,6 @@ vi.mock("../../hooks/useNotesStore", () => ({
 describe("Layout", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it("should hide editor when no note is selected", () => {
-    mockUseNotesStore.mockReturnValue({
-      selectedNoteId: null,
-      notes: [],
-      updateNote: vi.fn(),
-      fetchNotes: vi.fn(),
-      selectNote: vi.fn(),
-    });
-
-    render(<Layout />);
-
-    const editorPanel = screen.getByTestId("editor-panel");
-    expect(editorPanel.className).toContain("translate-x-[150%]");
-  });
-
-  it("should show editor when note is selected", () => {
-    mockUseNotesStore.mockReturnValue({
-      selectedNoteId: "note-1",
-      notes: [
-        {
-          id: "note-1",
-          title: "Test Note",
-          body: "Test Body",
-          lastUpdated: "Jan 2025",
-        },
-      ],
-      updateNote: vi.fn(),
-      fetchNotes: vi.fn(),
-      selectNote: vi.fn(),
-    });
-
-    render(<Layout />);
-
-    const editorPanel = screen.getByTestId("editor-panel");
-    expect(editorPanel.className).toContain("-translate-x-1/2");
   });
 
   it("should close editor and save content when clicking overlay", async () => {

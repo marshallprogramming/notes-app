@@ -9,7 +9,7 @@ import {
 describe("notes", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    // Mock Date to ensure consistent timestamps
+
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-12-25"));
   });
@@ -50,40 +50,47 @@ describe("notes", () => {
     await expect(fetchNotesApi()).rejects.toThrow("Failed to fetch notes");
   });
 
-  it("createNoteApi should only send body in request but return full note", async () => {
+  it("createNoteApi should send stringified note and return full note with generated id", async () => {
     const input = {
       title: "Test Note",
       body: "Test Body",
     };
 
-    // Mock UUID for consistent testing
-    vi.mock("uuid", () => ({
-      v4: () => "mock-uuid",
-    }));
+    const mockDate = new Date("2025-12-25T12:00:00");
+    vi.setSystemTime(mockDate);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
       ok: true,
+      json: () => Promise.resolve({ id: "server-generated-id" }),
     } as Response);
 
     const result = await createNoteApi(input);
 
-    // Check that only body was sent in request
+    const expectedDate = formatDate(mockDate);
+
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining("/notes"),
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: input.body }),
+        body: JSON.stringify({
+          body: JSON.stringify({
+            title: input.title,
+            body: input.body,
+            lastUpdated: expectedDate,
+          }),
+        }),
       })
     );
 
-    // Check that full note was returned
     expect(result).toEqual({
-      id: "mock-uuid",
+      id: "server-generated-id",
       title: "Test Note",
       body: "Test Body",
-      lastUpdated: "Dec 2025",
+      lastUpdated: expectedDate,
     });
+
+    vi.useRealTimers();
   });
 
   it("updateNoteApi should send updated note and return full note", async () => {
@@ -100,7 +107,6 @@ describe("notes", () => {
 
     const result = await updateNoteApi(input);
 
-    // Check that only body was sent in request
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining("/notes/note-123"),
       expect.objectContaining({
@@ -110,7 +116,6 @@ describe("notes", () => {
       })
     );
 
-    // Check that full note was returned
     expect(result).toEqual({
       id: "note-123",
       title: "Updated Title",

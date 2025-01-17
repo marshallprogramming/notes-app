@@ -9,14 +9,33 @@ describe("useNotesStore with services", () => {
   });
 
   it("fetchNotes should populate store with data from service", async () => {
-    const mockData = [
-      { id: "note-1", title: "Title", body: "Hello", lastUpdated: "Dec 2025" },
+    const mockApiResponse = [
+      {
+        id: "note-1",
+        body: JSON.stringify({
+          title: "Title",
+          body: "Hello",
+          lastUpdated: "Dec 2025",
+        }),
+      },
     ];
-    vi.spyOn(notesService, "fetchNotesApi").mockResolvedValueOnce(mockData);
+
+    const expectedStoreData = [
+      {
+        id: "note-1",
+        title: "Title",
+        body: "Hello",
+        lastUpdated: "Dec 2025",
+      },
+    ];
+
+    vi.spyOn(notesService, "fetchNotesApi").mockResolvedValueOnce(
+      mockApiResponse
+    );
 
     await useNotesStore.getState().fetchNotes();
     const { notes } = useNotesStore.getState();
-    expect(notes).toEqual(mockData);
+    expect(notes).toEqual(expectedStoreData);
   });
 
   it("addNote should call createNoteApi and update the store", async () => {
