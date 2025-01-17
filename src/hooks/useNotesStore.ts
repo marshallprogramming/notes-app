@@ -7,7 +7,7 @@ import {
   CreateNoteInput,
   UpdateNoteInput,
 } from "../services/notes";
-import { clearSessionId } from "../services/session";
+import { clearSessionId, getOrCreateSessionId } from "../services/session";
 
 interface NotesState {
   notes: ReadonlyArray<Note>;
@@ -64,6 +64,7 @@ export const useNotesStore = create<NotesState>((set) => ({
 
   clearAll: () => {
     clearSessionId();
+    getOrCreateSessionId();
     set(() => ({ notes: [], selectedNoteId: null }));
   },
 }));

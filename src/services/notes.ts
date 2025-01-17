@@ -20,8 +20,10 @@ export interface UpdateNoteInput {
 }
 
 const BASE_API = "https://challenge.surfe.com";
-const sessionId = getOrCreateSessionId();
-const BASE_URL = `${BASE_API}/${sessionId}`;
+
+function getBaseUrl(): string {
+  return `${BASE_API}/${getOrCreateSessionId()}`;
+}
 
 export const formatDate = (date: Date): string => {
   return date.toLocaleString("en-GB", {
@@ -33,7 +35,7 @@ export const formatDate = (date: Date): string => {
 export async function fetchNotesApi(): Promise<
   ReadonlyArray<{ body: string; id: string }>
 > {
-  const res = await fetch(`${BASE_URL}/notes`);
+  const res = await fetch(`${getBaseUrl()}/notes`);
   if (!res.ok) {
     throw new Error("Failed to fetch notes");
   }
@@ -47,7 +49,7 @@ export async function createNoteApi(input: CreateNoteInput): Promise<Note> {
     lastUpdated: formatDate(new Date()),
   };
 
-  const res = await fetch(`${BASE_URL}/notes`, {
+  const res = await fetch(`${getBaseUrl()}/notes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ body: JSON.stringify(note) }),
@@ -58,7 +60,6 @@ export async function createNoteApi(input: CreateNoteInput): Promise<Note> {
   }
 
   const generatedNote = await res.json();
-
   return { ...note, id: generatedNote.id };
 }
 
@@ -75,7 +76,7 @@ export async function updateNoteApi({
     lastUpdated,
   };
 
-  const res = await fetch(`${BASE_URL}/notes/${id}`, {
+  const res = await fetch(`${getBaseUrl()}/notes/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, body: JSON.stringify(updatedNote) }),
