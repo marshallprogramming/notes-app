@@ -27,14 +27,11 @@ const NoteEditor: FC<NoteEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const { selectNote } = useNotesStore();
-
-  // Ref to the mention dropdown for measuring
   const mentionDropdownRef = useRef<MentionDropdownRef>(null);
 
   const [isFocused, setIsFocused] = useState(false);
   const fetchUsers = useMentionsStore((s) => s.fetchUsers);
 
-  // Track active formatting states
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -71,21 +68,16 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
     onChange(data);
     debouncedSave(data);
-    checkFormatting();
   };
 
   const handleFormatText = (command: string, value?: string) => {
-    // Save the current selection
     const selection = window.getSelection();
     const range = selection?.getRangeAt(0);
 
-    // Focus the editor if it's not already focused
     if (!isFocused) {
       editorRef.current?.focus();
     }
 
-    // If there was no selection and the editor is focused,
-    // create a new range at the end of the content
     if (!range && editorRef.current) {
       const newRange = document.createRange();
       newRange.selectNodeContents(editorRef.current);
@@ -94,13 +86,10 @@ const NoteEditor: FC<NoteEditorProps> = ({
       selection?.addRange(newRange);
     }
 
-    // Execute the command
     document.execCommand(command, false, value);
 
-    // Check formatting states after command execution
     checkFormatting();
 
-    // Trigger the change handler to save the formatted content
     handleChange();
   };
 
@@ -112,7 +101,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
     handleMentionSelect,
   } = useCaretMention(editorRef, handleChange);
 
-  // We'll store a "clamped" position to actually use for the dropdown
   const [clampedPosition, setClampedPosition] = useState<{
     top: number;
     left: number;
@@ -137,7 +125,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
     };
   }, [debouncedSave]);
 
-  // Add keyboard shortcut handlers
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
@@ -163,7 +150,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
     };
   }, []);
 
-  // Add selection change monitoring
   useEffect(() => {
     const handleSelectionChange = () => {
       if (document.activeElement === editorRef.current) {
@@ -206,7 +192,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
   const handleEditorKeyUp = (e: React.KeyboardEvent) => {
     handleKeyUp(e);
-    checkFormatting();
   };
 
   return (
@@ -223,7 +208,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
         />
         <div
           onClick={() => selectNote(null)}
-          className="cursor-pointer opacity-80 transition-opacity duration-300 ease-in-out hover:opacity-100"
+          className="cursor-pointer flex justify-center items-center p-2 opacity-80 transition-opacity duration-300 ease-in-out hover:opacity-100"
         >
           <CloseIcon />
         </div>
@@ -241,10 +226,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
           className={`h-full p-4 outline-none ${
             isFocused ? "ring-2 ring-inset ring-blue-500" : ""
           }`}
-          onFocus={() => {
-            setIsFocused(true);
-            checkFormatting();
-          }}
+          onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           onInput={handleChange}
           onKeyUp={handleEditorKeyUp}
