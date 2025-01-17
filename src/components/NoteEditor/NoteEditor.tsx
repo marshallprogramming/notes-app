@@ -26,12 +26,12 @@ const NoteEditor: FC<NoteEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
-  const { selectNote } = useNotesStore();
   const mentionDropdownRef = useRef<MentionDropdownRef>(null);
 
-  const [isFocused, setIsFocused] = useState(false);
+  const { selectNote } = useNotesStore();
   const fetchUsers = useMentionsStore((s) => s.fetchUsers);
 
+  const [isFocused, setIsFocused] = useState(false);
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -45,6 +45,63 @@ const NoteEditor: FC<NoteEditorProps> = ({
       onSave(data);
     }, SAVE_DELAY)
   ).current;
+
+  const {
+    isVisible: showMentions,
+    query: mentionQuery,
+    position: rawMentionPosition,
+    handleKeyUp,
+  } = useCaretMention(editorRef, handleChange);
+
+  const [clampedPosition, setClampedPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    if (editorRef.current && initialContent) {
+      editorRef.current.innerHTML = initialContent;
+    }
+  }, [initialContent]);
+
+  useEffect(() => {
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
+
+  const insertMentionAtCaret = (username: string) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const mentionEl = document.createElement("span");
+    mentionEl.classList.add("mention");
+    mentionEl.contentEditable = "false";
+
+    mentionEl.textContent = `@${username} `;
+
+    const range = selection.getRangeAt(0);
+
+    range.deleteContents();
+
+    range.insertNode(mentionEl);
+
+    range.setStartAfter(mentionEl);
+    range.setEndAfter(mentionEl);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+
+  const handleMentionSelect = (username: string) => {
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+
+    insertMentionAtCaret(username);
+
+    handleChange();
+  };
 
   const checkFormatting = () => {
     if (!editorRef.current) return;
@@ -61,21 +118,21 @@ const NoteEditor: FC<NoteEditorProps> = ({
     });
   };
 
-  const handleChange = () => {
+  function handleChange() {
     const content = editorRef.current?.innerHTML || "";
     const title = titleRef.current?.value || "";
     const data = { title, body: content };
 
     onChange(data);
     debouncedSave(data);
-  };
+  }
 
   const handleFormatText = (command: string, value?: string) => {
     const selection = window.getSelection();
     const range = selection?.getRangeAt(0);
 
-    if (!isFocused) {
-      editorRef.current?.focus();
+    if (!isFocused && editorRef.current) {
+      editorRef.current.focus();
     }
 
     if (!range && editorRef.current) {
@@ -89,41 +146,8 @@ const NoteEditor: FC<NoteEditorProps> = ({
     document.execCommand(command, false, value);
 
     checkFormatting();
-
     handleChange();
   };
-
-  const {
-    isVisible: showMentions,
-    query: mentionQuery,
-    position: rawMentionPosition,
-    handleKeyUp,
-    handleMentionSelect,
-  } = useCaretMention(editorRef, handleChange);
-
-  const [clampedPosition, setClampedPosition] = useState<{
-    top: number;
-    left: number;
-  }>({
-    top: 0,
-    left: 0,
-  });
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  useEffect(() => {
-    if (editorRef.current && initialContent) {
-      editorRef.current.innerHTML = initialContent;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      debouncedSave.cancel();
-    };
-  }, [debouncedSave]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -181,7 +205,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
         if (nextLeft < 0) nextLeft = 0;
         if (nextLeft > maxLeft) nextLeft = maxLeft;
-
         if (nextTop < 0) nextTop = 0;
         if (nextTop > maxTop) nextTop = maxTop;
 

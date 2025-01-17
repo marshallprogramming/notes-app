@@ -12,3 +12,10 @@ html,
 body {
   overscroll-behavior: none;
 }
+
+.mention {
+  color: #019af9;
+  border-radius: 2px;
+  padding: 0 2px;
+  cursor: pointer;
+}
