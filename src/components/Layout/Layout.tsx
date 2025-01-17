@@ -51,7 +51,7 @@ const Layout: FC = () => {
   );
 
   return (
-    <div className="relative h-full overflow-hidden">
+    <div className="relative h-full overflow-x-hidden">
       <div data-testid="notes-grid" className="w-full">
         <NotesPage />
       </div>
