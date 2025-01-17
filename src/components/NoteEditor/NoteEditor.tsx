@@ -5,6 +5,8 @@ import { useCaretMention } from "../../hooks/useCaretMention";
 import MentionDropdown, {
   MentionDropdownRef,
 } from "../MentionDropdown/MentionDropdown";
+import CloseIcon from "../icons/CloseIcon";
+import { useNotesStore } from "../../hooks/useNotesStore";
 
 interface NoteEditorProps {
   initialTitle?: string;
@@ -23,6 +25,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const { selectNote } = useNotesStore();
 
   // Ref to the mention dropdown for measuring
   const mentionDropdownRef = useRef<MentionDropdownRef>(null);
@@ -125,7 +128,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b border-gray-200 p-4">
+      <div className="border-b border-gray-200 p-4 flex justify-between">
         <input
           ref={titleRef}
           type="text"
@@ -135,6 +138,12 @@ const NoteEditor: FC<NoteEditorProps> = ({
           onChange={handleChange}
           data-testid="note-title"
         />
+        <div
+          onClick={() => selectNote(null)}
+          className="cursor-pointer opacity-80 transition-opacity duration-300 ease-in-out hover:opacity-100"
+        >
+          <CloseIcon />
+        </div>
       </div>
       <div className="flex-1 relative">
         <div
