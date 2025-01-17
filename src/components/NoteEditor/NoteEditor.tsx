@@ -32,6 +32,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
   const fetchUsers = useMentionsStore((s) => s.fetchUsers);
 
   const [isFocused, setIsFocused] = useState(false);
+
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -71,19 +72,62 @@ const NoteEditor: FC<NoteEditorProps> = ({
     };
   }, [debouncedSave]);
 
+  function handleChange() {
+    const content = editorRef.current?.innerHTML || "";
+    const title = titleRef.current?.value || "";
+    const data = { title, body: content };
+
+    onChange(data);
+    debouncedSave(data);
+  }
+
+  const handleFormatText = (command: string, value?: string) => {
+    const selection = window.getSelection();
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+
+    if (!isFocused && editorRef.current) {
+      editorRef.current.focus();
+    }
+
+    if (range) {
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    }
+
+    document.execCommand(command, false, value);
+
+    checkFormatting();
+    handleChange();
+  };
+
   const insertMentionAtCaret = (username: string) => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+
+    const startContainer = range.startContainer;
+    let startOffset = range.startOffset;
+
+    if (startContainer.nodeType === Node.TEXT_NODE) {
+      const textNode = startContainer as Text;
+
+      while (startOffset > 0) {
+        if (textNode.data.charAt(startOffset - 1) === "@") {
+          range.setStart(textNode, startOffset - 1);
+          break;
+        }
+        startOffset--;
+      }
+    }
+
+    range.deleteContents();
 
     const mentionEl = document.createElement("span");
     mentionEl.classList.add("mention");
     mentionEl.contentEditable = "false";
 
     mentionEl.textContent = `@${username} `;
-
-    const range = selection.getRangeAt(0);
-
-    range.deleteContents();
 
     range.insertNode(mentionEl);
 
@@ -96,6 +140,7 @@ const NoteEditor: FC<NoteEditorProps> = ({
 
   const handleMentionSelect = (username: string) => {
     if (!editorRef.current) return;
+
     editorRef.current.focus();
 
     insertMentionAtCaret(username);
@@ -118,40 +163,9 @@ const NoteEditor: FC<NoteEditorProps> = ({
     });
   };
 
-  function handleChange() {
-    const content = editorRef.current?.innerHTML || "";
-    const title = titleRef.current?.value || "";
-    const data = { title, body: content };
-
-    onChange(data);
-    debouncedSave(data);
-  }
-
-  const handleFormatText = (command: string, value?: string) => {
-    const selection = window.getSelection();
-    const range = selection?.getRangeAt(0);
-
-    if (!isFocused && editorRef.current) {
-      editorRef.current.focus();
-    }
-
-    if (!range && editorRef.current) {
-      const newRange = document.createRange();
-      newRange.selectNodeContents(editorRef.current);
-      newRange.collapse(false);
-      selection?.removeAllRanges();
-      selection?.addRange(newRange);
-    }
-
-    document.execCommand(command, false, value);
-
-    checkFormatting();
-    handleChange();
-  };
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
       const modifierKey = isMac ? e.metaKey : e.ctrlKey;
 
       if (modifierKey) {
