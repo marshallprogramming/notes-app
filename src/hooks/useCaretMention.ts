@@ -27,10 +27,24 @@ export const useCaretMention = (
     position: { top: 0, left: 0 },
   });
 
+  const getAbsoluteCaretPos = (): number => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !editorRef.current) {
+      return 0;
+    }
+    const range = sel.getRangeAt(0).cloneRange();
+
+    const tempRange = document.createRange();
+    tempRange.selectNodeContents(editorRef.current);
+    tempRange.setEnd(range.endContainer, range.endOffset);
+
+    return tempRange.toString().length;
+  };
+
   const getCaretPosition = (): CaretPosition | null => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
       const rect = range.getBoundingClientRect();
       const editorRect = editorRef.current?.getBoundingClientRect();
 
@@ -44,8 +58,23 @@ export const useCaretMention = (
     return null;
   };
 
+  const reset = () => {
+    setMentionState({
+      isVisible: false,
+      query: "",
+      position: { top: 0, left: 0 },
+    });
+  };
+
   const handleKeyUp = (e: React.KeyboardEvent) => {
-    // If @ is typed, show the dropdown immediately
+    const content = editorRef.current?.textContent || "";
+
+    if (e.key === " " && mentionState.isVisible) {
+      reset();
+      onChange?.();
+      return;
+    }
+
     if (e.key === "@") {
       const position = getCaretPosition();
       if (position) {
@@ -55,36 +84,37 @@ export const useCaretMention = (
           position,
         });
       }
+      onChange?.();
       return;
     }
 
-    // Skip shift key events as they're part of typing @
     if (e.key === "Shift") {
+      onChange?.();
       return;
     }
 
-    // For other keys, check if we're in a mention context
-    const selection = window.getSelection();
-    const content = editorRef.current?.textContent || "";
-    const caretPos = selection?.anchorOffset || 0;
+    const caretPos = getAbsoluteCaretPos();
 
-    // Find the last @ symbol before the caret
-    const lastIndex = content.lastIndexOf("@", caretPos);
+    const lastIndex = content.lastIndexOf("@", caretPos - 1);
+    if (lastIndex >= 0) {
+      const mentionLength = caretPos - (lastIndex + 1);
 
-    if (lastIndex >= 0 && caretPos - lastIndex <= 20) {
-      const query = content.slice(lastIndex + 1, caretPos);
-      const position = getCaretPosition();
+      if (mentionLength >= 0 && mentionLength <= 30) {
+        const query = content.slice(lastIndex + 1, caretPos);
+        const position = getCaretPosition();
 
-      if (position) {
-        setMentionState({
-          isVisible: true,
-          query,
-          position,
-        });
+        if (position) {
+          setMentionState({
+            isVisible: true,
+            query,
+            position,
+          });
+        }
+      } else {
+        reset();
       }
-    } else if (!content.includes("@")) {
-      // Only hide if there's no @ symbol in the content
-      setMentionState((prev) => ({ ...prev, isVisible: false }));
+    } else {
+      reset();
     }
 
     onChange?.();
@@ -93,54 +123,43 @@ export const useCaretMention = (
   const handleMentionSelect = (username: string) => {
     if (!editorRef.current) return;
 
-    const selection = window.getSelection();
-    if (!selection || !selection.rangeCount) return;
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
 
     const content = editorRef.current.textContent || "";
-    const caretPos = selection.anchorOffset;
+    const caretPos = getAbsoluteCaretPos();
     const lastAtPos = content.lastIndexOf("@", caretPos - 1);
 
     if (lastAtPos >= 0) {
-      // Replace the @query with the selected username
       const before = content.slice(0, lastAtPos);
       const after = content.slice(caretPos);
       editorRef.current.textContent = `${before}@${username}${after}`;
 
-      // Move caret to end of inserted mention
       const newPosition = lastAtPos + username.length + 1;
       const newRange = document.createRange();
-      const textNode = editorRef.current.firstChild || editorRef.current;
-      newRange.setStart(textNode, newPosition);
-      newRange.setEnd(textNode, newPosition);
-      selection.removeAllRanges();
-      selection.addRange(newRange);
-
-      // Reset mention state
+      const textNode = editorRef.current.firstChild;
+      if (textNode) {
+        newRange.setStart(textNode, newPosition);
+        newRange.setEnd(textNode, newPosition);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
 
       onChange?.();
     }
+
     reset();
   };
 
-  const reset = () => {
-    setMentionState({
-      isVisible: false,
-      query: "",
-      position: { top: 0, left: 0 },
-    });
-  };
-
-  // Add click handler to close dropdown when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (editorRef.current && !editorRef.current.contains(e.target as Node)) {
         reset();
       }
     };
-
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, []);
+  }, [editorRef]);
 
   return {
     ...mentionState,
