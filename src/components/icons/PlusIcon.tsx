@@ -1,11 +1,11 @@
-import * as React from "react";
+import { IconProps } from "./types";
 
 const PlusIcon = ({
   height = "1em",
   fill = "currentColor",
   focusable = "false",
   ...props
-}: Omit<React.SVGProps<SVGSVGElement>, "children">) => (
+}: IconProps) => (
   <svg
     role="img"
     xmlns="http://www.w3.org/2000/svg"

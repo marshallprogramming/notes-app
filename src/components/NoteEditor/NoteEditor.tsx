@@ -7,6 +7,7 @@ import MentionDropdown, {
 } from "../MentionDropdown/MentionDropdown";
 import CloseIcon from "../icons/CloseIcon";
 import { useNotesStore } from "../../hooks/useNotesStore";
+import { EditorToolbar } from "../EditorToolbar";
 
 interface NoteEditorProps {
   initialTitle?: string;
@@ -48,6 +49,33 @@ const NoteEditor: FC<NoteEditorProps> = ({
     debouncedSave(data);
   };
 
+  const handleFormatText = (command: string, value?: string) => {
+    // Save the current selection
+    const selection = window.getSelection();
+    const range = selection?.getRangeAt(0);
+
+    // Focus the editor if it's not already focused
+    if (!isFocused) {
+      editorRef.current?.focus();
+    }
+
+    // If there was no selection and the editor is focused,
+    // create a new range at the end of the content
+    if (!range && editorRef.current) {
+      const newRange = document.createRange();
+      newRange.selectNodeContents(editorRef.current);
+      newRange.collapse(false);
+      selection?.removeAllRanges();
+      selection?.addRange(newRange);
+    }
+
+    // Execute the command
+    document.execCommand(command, false, value);
+
+    // Trigger the change handler to save the formatted content
+    handleChange();
+  };
+
   const {
     isVisible: showMentions,
     query: mentionQuery,
@@ -64,14 +92,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
     top: 0,
     left: 0,
   });
-
-  useEffect(() => {
-    console.log("Mention state:", {
-      showMentions,
-      mentionQuery,
-      mentionPosition: rawMentionPosition,
-    });
-  }, [showMentions, mentionQuery, rawMentionPosition]);
 
   useEffect(() => {
     fetchUsers();
@@ -92,9 +112,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
     };
   }, [debouncedSave]);
 
-  // Each time the mention is visible or the raw position changes,
-  // measure and clamp. We do this in a microtask so the dropdown
-  // has time to render if needed, or at least measure its current size.
   useEffect(() => {
     if (showMentions && editorRef.current) {
       const editorRect = editorRef.current.getBoundingClientRect();
@@ -145,6 +162,9 @@ const NoteEditor: FC<NoteEditorProps> = ({
           <CloseIcon />
         </div>
       </div>
+
+      <EditorToolbar onFormatText={handleFormatText} />
+
       <div className="flex-1 relative">
         <div
           ref={editorRef}
