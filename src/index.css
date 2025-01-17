@@ -19,3 +19,17 @@ body {
   padding: 0 2px;
   cursor: pointer;
 }
+
+.mention:hover::after {
+  content: "TODO: Component to display all user info on hover";
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-top: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+}
