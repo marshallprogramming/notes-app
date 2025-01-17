@@ -39,7 +39,10 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
   return (
     <div className="border-b border-gray-200 p-2 flex items-center gap-2 justify-around">
       <button
-        onClick={() => onFormatText("bold")}
+        onMouseDown={(e) => {
+          e.preventDefault(); // Prevent button from stealing focus
+          onFormatText("bold");
+        }}
         className={getButtonClass(activeFormats.bold)}
         data-testid="bold-button"
         title="Bold"
@@ -48,7 +51,10 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
       </button>
 
       <button
-        onClick={() => onFormatText("italic")}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          onFormatText("italic");
+        }}
         className={getButtonClass(activeFormats.italic)}
         data-testid="italic-button"
         title="Italic"
@@ -57,12 +63,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
       </button>
 
       <button
-        onClick={() =>
+        onMouseDown={(e) => {
+          e.preventDefault();
           onFormatText(
             "backColor",
             activeFormats.highlight ? "transparent" : "yellow"
-          )
-        }
+          );
+        }}
         className={getButtonClass(activeFormats.highlight)}
         data-testid="highlight-button"
         title="Highlight"
@@ -72,7 +79,10 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
       <div className="relative">
         <button
-          onClick={() => setShowColorPicker(!showColorPicker)}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setShowColorPicker(!showColorPicker);
+          }}
           className={getButtonClass(!!activeFormats.color)}
           data-testid="color-button"
           title="Text Color"
@@ -90,7 +100,10 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
             {colors.map((color) => (
               <button
                 key={color}
-                onClick={() => handleColorClick(color)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleColorClick(color);
+                }}
                 className={`
                   w-6 h-6 rounded cursor-pointer
                   hover:ring-2 ring-offset-2 ring-gray-400
@@ -110,7 +123,10 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({
       </div>
 
       <button
-        onClick={() => onFormatText("insertUnorderedList")}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          onFormatText("insertUnorderedList");
+        }}
         className={getButtonClass(activeFormats.list)}
         data-testid="list-button"
         title="Bullet List"

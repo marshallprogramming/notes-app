@@ -28,11 +28,15 @@ const NoteEditor: FC<NoteEditorProps> = ({
   const titleRef = useRef<HTMLInputElement>(null);
   const mentionDropdownRef = useRef<MentionDropdownRef>(null);
 
+  const latestRangeRef = useRef<Range | null>(null);
+  // Stores the latest selection range
+
   const { selectNote } = useNotesStore();
   const fetchUsers = useMentionsStore((s) => s.fetchUsers);
 
   const [isFocused, setIsFocused] = useState(false);
 
+  // Track active text formats
   const [activeFormats, setActiveFormats] = useState({
     bold: false,
     italic: false,
@@ -41,12 +45,17 @@ const NoteEditor: FC<NoteEditorProps> = ({
     color: null as string | null,
   });
 
+  // Ref to prevent multiple initialContent sets
+  const contentSetRef = useRef(false);
+
+  // Debounced saving
   const debouncedSave = useRef(
     debounce((data: { title: string; body: string }) => {
       onSave(data);
     }, SAVE_DELAY)
   ).current;
 
+  // Mention detection and handling
   const {
     isVisible: showMentions,
     query: mentionQuery,
@@ -54,24 +63,42 @@ const NoteEditor: FC<NoteEditorProps> = ({
     handleKeyUp,
   } = useCaretMention(editorRef, handleChange);
 
+  // Position for the mention dropdown
   const [clampedPosition, setClampedPosition] = useState({ top: 0, left: 0 });
 
+  // Fetch users on mount
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
+  // Initialize editor's content only once
   useEffect(() => {
-    if (editorRef.current && initialContent) {
+    if (editorRef.current && initialContent && !contentSetRef.current) {
       editorRef.current.innerHTML = initialContent;
+      contentSetRef.current = true;
+      // Initialize the latestRangeRef to the end of the content
+      const range = document.createRange();
+      range.selectNodeContents(editorRef.current);
+      range.collapse(false);
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+        latestRangeRef.current = range;
+      }
     }
   }, [initialContent]);
 
+  // Clean up debounce on unmount
   useEffect(() => {
     return () => {
       debouncedSave.cancel();
     };
   }, [debouncedSave]);
 
+  /**
+   * Handles any changes within the editor or title
+   */
   function handleChange() {
     const content = editorRef.current?.innerHTML || "";
     const title = titleRef.current?.value || "";
@@ -81,31 +108,42 @@ const NoteEditor: FC<NoteEditorProps> = ({
     debouncedSave(data);
   }
 
+  /**
+   * Formats text (bold, italic, etc.) while preserving the selection
+   */
   const handleFormatText = (command: string, value?: string) => {
+    // Restore the latest selection range
     const selection = window.getSelection();
-    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
-
-    if (!isFocused && editorRef.current) {
-      editorRef.current.focus();
+    if (selection && latestRangeRef.current) {
+      selection.removeAllRanges();
+      selection.addRange(latestRangeRef.current);
     }
 
-    if (range) {
-      selection?.removeAllRanges();
-      selection?.addRange(range);
-    }
-
+    // Execute the formatting command
     document.execCommand(command, false, value);
 
+    // Update active formats
     checkFormatting();
+
+    // Update the latest range
+    if (selection && selection.rangeCount > 0) {
+      latestRangeRef.current = selection.getRangeAt(0);
+    }
+
+    // Trigger change
     handleChange();
   };
 
+  /**
+   * Inserts a mention at the current caret position, replacing the '@' and typed characters
+   */
   const insertMentionAtCaret = (username: string) => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
 
+    // Expand the range backward to find '@'
     const startContainer = range.startContainer;
     let startOffset = range.startOffset;
 
@@ -113,7 +151,8 @@ const NoteEditor: FC<NoteEditorProps> = ({
       const textNode = startContainer as Text;
 
       while (startOffset > 0) {
-        if (textNode.data.charAt(startOffset - 1) === "@") {
+        const char = textNode.data.charAt(startOffset - 1);
+        if (char === "@") {
           range.setStart(textNode, startOffset - 1);
           break;
         }
@@ -121,33 +160,56 @@ const NoteEditor: FC<NoteEditorProps> = ({
       }
     }
 
+    // Remove the '@' and the typed characters
     range.deleteContents();
 
+    // Create the mention span
     const mentionEl = document.createElement("span");
-    mentionEl.classList.add("mention");
+    mentionEl.classList.add("mention"); // For CSS styling
     mentionEl.contentEditable = "false";
+    mentionEl.textContent = `@${username} `; // Trailing space for convenience
 
-    mentionEl.textContent = `@${username} `;
-
+    // Insert the mention span
     range.insertNode(mentionEl);
 
+    // Move the caret after the mention
     range.setStartAfter(mentionEl);
     range.setEndAfter(mentionEl);
 
+    // Update the selection
     selection.removeAllRanges();
     selection.addRange(range);
+
+    // Update the latest range
+    latestRangeRef.current = range;
   };
 
+  /**
+   * Handles the selection of a mention from the dropdown
+   */
   const handleMentionSelect = (username: string) => {
     if (!editorRef.current) return;
 
+    // Focus the editor to ensure Range APIs work correctly
     editorRef.current.focus();
 
+    // Restore the latest selection range
+    const selection = window.getSelection();
+    if (selection && latestRangeRef.current) {
+      selection.removeAllRanges();
+      selection.addRange(latestRangeRef.current);
+    }
+
+    // Insert the mention
     insertMentionAtCaret(username);
 
+    // Trigger change
     handleChange();
   };
 
+  /**
+   * Updates the active formatting states (bold, italic, etc.)
+   */
   const checkFormatting = () => {
     if (!editorRef.current) return;
 
@@ -163,6 +225,9 @@ const NoteEditor: FC<NoteEditorProps> = ({
     });
   };
 
+  /**
+   * Keyboard shortcuts (Ctrl/Cmd + B/I)
+   */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().includes("MAC");
@@ -188,9 +253,16 @@ const NoteEditor: FC<NoteEditorProps> = ({
     };
   }, []);
 
+  /**
+   * Listen for selection changes to keep track of the latest range and update formatting
+   */
   useEffect(() => {
     const handleSelectionChange = () => {
       if (document.activeElement === editorRef.current) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          latestRangeRef.current = selection.getRangeAt(0);
+        }
         checkFormatting();
       }
     };
@@ -201,6 +273,9 @@ const NoteEditor: FC<NoteEditorProps> = ({
     };
   }, []);
 
+  /**
+   * Clamp the mention dropdown position within the editor bounds
+   */
   useEffect(() => {
     if (showMentions && editorRef.current) {
       const editorRect = editorRef.current.getBoundingClientRect();
@@ -227,6 +302,9 @@ const NoteEditor: FC<NoteEditorProps> = ({
     }
   }, [showMentions, rawMentionPosition]);
 
+  /**
+   * Forward keyUp events to the mention detection hook
+   */
   const handleEditorKeyUp = (e: React.KeyboardEvent) => {
     handleKeyUp(e);
   };
@@ -267,7 +345,6 @@ const NoteEditor: FC<NoteEditorProps> = ({
           onBlur={() => setIsFocused(false)}
           onInput={handleChange}
           onKeyUp={handleEditorKeyUp}
-          onMouseUp={checkFormatting}
           data-testid="note-editor"
         />
         <MentionDropdown
