@@ -29,6 +29,8 @@ export const formatDate = (date: Date): string => {
   return date.toLocaleString("en-GB", {
     month: "short",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
