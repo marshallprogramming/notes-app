@@ -7,6 +7,7 @@ import {
   CreateNoteInput,
   UpdateNoteInput,
 } from "../services/notes";
+import { clearSessionId } from "../services/session";
 
 interface NotesState {
   notes: ReadonlyArray<Note>;
@@ -16,6 +17,7 @@ interface NotesState {
   fetchNotes: () => Promise<void>;
   addNote: (input: CreateNoteInput) => Promise<void>;
   updateNote: (input: UpdateNoteInput) => Promise<void>;
+  clearAll: () => void;
 }
 
 export const useNotesStore = create<NotesState>((set) => ({
@@ -58,5 +60,10 @@ export const useNotesStore = create<NotesState>((set) => ({
     } catch (error) {
       console.error("Error updating note:", error);
     }
+  },
+
+  clearAll: () => {
+    clearSessionId();
+    set(() => ({ notes: [], selectedNoteId: null }));
   },
 }));
