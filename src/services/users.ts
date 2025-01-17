@@ -23,9 +23,7 @@ export interface UserForMention {
   email: string;
 }
 
-const BASE_API = "https://challenge.surfe.com";
-const sessionId = getOrCreateSessionId();
-const BASE_URL = `${BASE_API}/${sessionId}`;
+const BASE_URL = "https://challenge.surfe.com";
 
 export async function fetchUsersApi(): Promise<ReadonlyArray<RawUser>> {
   const res = await fetch(`${BASE_URL}/users`);

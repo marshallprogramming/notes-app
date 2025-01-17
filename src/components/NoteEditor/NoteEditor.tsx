@@ -27,13 +27,13 @@ const NoteEditor: FC<NoteEditorProps> = ({
   ).current;
 
   useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML = initialContent;
+    if (!isFocused && editorRef.current) {
+      const currentHTML = editorRef.current.innerHTML;
+      if (currentHTML !== initialContent) {
+        editorRef.current.innerHTML = initialContent;
+      }
     }
-    if (titleRef.current) {
-      titleRef.current.value = initialTitle;
-    }
-  }, [initialContent, initialTitle]);
+  }, [initialContent, isFocused]);
 
   const handleChange = () => {
     const content = editorRef.current?.innerHTML || "";
