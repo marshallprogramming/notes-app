@@ -126,13 +126,10 @@ const NoteEditor: FC<NoteEditorProps> = ({
   }, [fetchUsers]);
 
   useEffect(() => {
-    if (!isFocused && editorRef.current) {
-      const currentHTML = editorRef.current.innerHTML;
-      if (currentHTML !== initialContent) {
-        editorRef.current.innerHTML = initialContent;
-      }
+    if (editorRef.current && initialContent) {
+      editorRef.current.innerHTML = initialContent;
     }
-  }, [initialContent, isFocused]);
+  }, []);
 
   useEffect(() => {
     return () => {
